@@ -1,20 +1,26 @@
-let questions = [];
+let questions = JSON.parse(localStorage.getItem("quizQuestions")) || [];
 let currentQuestion = 0;
 let score = 0;
 let selectedOption = null;
 let timerInterval;
 let timeLeft = 15;
 
-// Fetch questions (Admin-controlled)
-fetch('questions.json')
-    .then(res => res.json())
-    .then(data => {
-        questions = shuffle(data);
-        loadQuestion();
-    });
+if (questions.length === 0) {
+    questions = [
+        {
+            question: "In which year was the college established?",
+            options: ["1995", "2001", "1987", "2010"],
+            answer: 2,
+            explanation: "The college was established in 1987."
+        }
+    ];
+    localStorage.setItem("quizQuestions", JSON.stringify(questions));
+}
+
+questions = shuffle(questions);
+loadQuestion();
 
 function loadQuestion() {
-
     resetState();
     startTimer();
 
@@ -27,14 +33,11 @@ function loadQuestion() {
         const div = document.createElement("div");
         div.textContent = option;
         div.classList.add("option");
-        div.setAttribute("role", "radio");
         div.tabIndex = 0;
-
         div.addEventListener("click", () => selectOption(div, index));
         div.addEventListener("keypress", (e) => {
             if (e.key === "Enter") selectOption(div, index);
         });
-
         optionsSection.appendChild(div);
     });
 
@@ -52,9 +55,7 @@ function selectOption(element, index) {
 document.getElementById("submit-btn").addEventListener("click", checkAnswer);
 
 function checkAnswer() {
-
     if (selectedOption === null) return;
-
     clearInterval(timerInterval);
 
     const feedback = document.getElementById("feedback");
@@ -80,10 +81,9 @@ function checkAnswer() {
 }
 
 function showResult() {
-    document.querySelector(".quiz-container").innerHTML = `
-        <h2>Your Score: ${score} / ${questions.length}</h2>
-        <button onclick="location.reload()">Retake Quiz</button>
-    `;
+    document.querySelector(".quiz-container").innerHTML =
+        `<h2>Your Score: ${score} / ${questions.length}</h2>
+         <button onclick="location.reload()">Retake Quiz</button>`;
 }
 
 function resetState() {
@@ -99,9 +99,8 @@ function shuffle(array) {
 }
 
 function updateProgress() {
-    const progress = document.getElementById("progress");
-    const percent = ((currentQuestion) / questions.length) * 100;
-    progress.style.width = percent + "%";
+    const percent = (currentQuestion / questions.length) * 100;
+    document.getElementById("progress").style.width = percent + "%";
 }
 
 function startTimer() {
